@@ -12,4 +12,4 @@
 ### 技术细节
 * 获取图片
 * 存储图片
-* GridView显示图片
+* GridView显示图片:可用padding 1dp代替间隔线
