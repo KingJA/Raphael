@@ -11,6 +11,7 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/imagepickerModule" />
             <option value="$PROJECT_DIR$/libk-raphael" />
+            <option value="$PROJECT_DIR$/multipleimageselect" />
           </set>
         </option>
         <option name="myModules">
@@ -19,6 +20,7 @@
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/imagepickerModule" />
             <option value="$PROJECT_DIR$/libk-raphael" />
+            <option value="$PROJECT_DIR$/multipleimageselect" />
           </set>
         </option>
       </GradleProjectSettings>
