@@ -2,12 +2,14 @@ package com.kingja.raphael;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
+import com.pizidea.imagepicker.AndroidImagePicker;
 import com.pizidea.imagepicker.ImgLoader;
 import com.pizidea.imagepicker.UilImgLoader;
 import com.pizidea.imagepicker.Util;
@@ -21,29 +23,26 @@ import java.util.List;
  * Author:KingJA
  * Email:kingjavip@gmail.com
  */
-public class SelectAdapter extends BaseAdapter {
+public class SelectPicAdapter extends BaseAdapter {
     private Context context;
     private List<ImageItem> items;
     private final ImgLoader presenter;
     private final int width;
     private final int ADD = 0;
     private final int IMG = 1;
-    private ViewGroup.LayoutParams addParam;
-    private ViewGroup.LayoutParams ivParam;
-    private  LinearLayout.LayoutParams mParams;
+    private OnAddPicListener onAddPicListener;
 
-    public SelectAdapter(Activity context, List<ImageItem> items) {
+    public SelectPicAdapter(Activity context, List<ImageItem> items) {
         this.context = context;
         this.items = items;
         presenter = new UilImgLoader();
         int screenWidth = context.getWindowManager().getDefaultDisplay().getWidth();
         width = (screenWidth - Util.dp2px(context, 2 * 2)) / 3;
-        mParams = new LinearLayout.LayoutParams(width, width);
     }
 
     @Override
     public int getCount() {
-        if (items.size() < 6) {
+        if (items.size() < AndroidImagePicker.MAX_PIC_NUM) {
             return items.size() + 1;
         } else {
             return items.size();
@@ -67,20 +66,35 @@ public class SelectAdapter extends BaseAdapter {
 
     @Override
     public int getItemViewType(int position) {
-        if (items.size() < 6) {
+        if (items.size() < AndroidImagePicker.MAX_PIC_NUM) {
             return position == (getCount() - 1) ? ADD : IMG;
         } else {
             return IMG;
         }
     }
 
+    public void deleteItem(int position) {
+        items.remove(position);
+        this.notifyDataSetChanged();
+    }
+
+    public List<ImageItem> getItems() {
+        return items;
+    }
+
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder = null;
         if (getItemViewType(position) == ADD) {
             convertView = View.inflate(context, R.layout.item_add, null);
-            ImageView iv_add = (ImageView) convertView.findViewById(R.id.iv_add);
-            iv_add.setLayoutParams(mParams);
+            convertView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (onAddPicListener != null) {
+                        onAddPicListener.onAddPic();
+                    }
+                }
+            });
         } else {
             if (convertView == null) {
                 convertView = View.inflate(context, R.layout.item_select, null);
@@ -89,7 +103,14 @@ public class SelectAdapter extends BaseAdapter {
             } else {
                 viewHolder = (ViewHolder) convertView.getTag();
             }
-            viewHolder.iv.setLayoutParams(mParams);
+            convertView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    Log.e("onLongClick", ": "+position );
+                    deleteItem(position);
+                    return true;
+                }
+            });
             presenter.onPresentImage(viewHolder.iv, items.get(position).path, width);
         }
 
@@ -106,9 +127,22 @@ public class SelectAdapter extends BaseAdapter {
         }
     }
 
-
     public void setRefresh(List<ImageItem> items) {
         this.items = items;
         this.notifyDataSetChanged();
     }
+
+    public void addData(List<ImageItem> addData) {
+        items.addAll(addData);
+        this.notifyDataSetChanged();
+    }
+
+    public void setOnAddPicListener(OnAddPicListener onAddPicListener) {
+        this.onAddPicListener = onAddPicListener;
+    }
+
+    public interface OnAddPicListener {
+        void onAddPic();
+    }
+
 }

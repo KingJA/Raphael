@@ -74,7 +74,8 @@ public class AndroidImagePicker {
         return mInstance;
     }
 
-    private int selectLimit = 9;//can select 9 at most,you can change it yourself
+    public static final int MAX_PIC_NUM = 6;//can select 9 at most,you can change it yourself
+    public  int selectLimit = MAX_PIC_NUM;//can select 9 at most,you can change it yourself
     public int getSelectLimit() {
         return selectLimit;
     }
@@ -460,8 +461,8 @@ public class AndroidImagePicker {
      * @param showCamera 是否需要显示拍照按钮
      * @param l 回调Listener
      */
-    public void pickMulti(Activity act,boolean showCamera,OnImagePickCompleteListener l){
-        //
+    public void pickMulti(Activity act,int selectLimit,boolean showCamera,OnImagePickCompleteListener l){
+        this.selectLimit = selectLimit;
         setSelectMode(Select_Mode.MODE_MULTI);
         setShouldShowCamera(showCamera);
         setOnImagePickCompleteListener(l);

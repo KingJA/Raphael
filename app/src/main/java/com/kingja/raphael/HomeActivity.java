@@ -1,11 +1,11 @@
 package com.kingja.raphael;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.HandlerThread;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.text.GetChars;
 import android.util.Log;
 import android.view.View;
 import android.widget.GridView;
@@ -18,6 +18,7 @@ import com.pizidea.imagepicker.AndroidImagePicker;
 import com.pizidea.imagepicker.bean.ImageItem;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -27,19 +28,20 @@ import java.util.List;
  * Author:KingJA
  * Email:kingjavip@gmail.com
  */
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends AppCompatActivity implements SelectPicAdapter.OnAddPicListener{
     private final String TAG = getClass().getSimpleName();
     private GridView gv;
     private List<ImageItem> itemList=new ArrayList<>();
-    private SelectAdapter selectAdapter;
+    private SelectPicAdapter selectPicAdapter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         gv = (GridView) findViewById(R.id.gv);
-        selectAdapter = new SelectAdapter(this, itemList);
-        gv.setAdapter(selectAdapter);
+        selectPicAdapter = new SelectPicAdapter(this, itemList);
+        selectPicAdapter.setOnAddPicListener(this);
+        gv.setAdapter(selectPicAdapter);
 
         HandlerThread workerThread = new HandlerThread("global_worker_thread");
         workerThread.start();
@@ -48,17 +50,7 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     public void onSelect(View view) {
-        AndroidImagePicker.getInstance().pickMulti(this, true, new AndroidImagePicker.OnImagePickCompleteListener() {
-            @Override
-            public void onImagePickComplete(List<ImageItem> items) {
-                if (items != null && items.size() > 0) {
-                    for (ImageItem item :items) {
-                    Log.i(TAG, "=====选择了：" + item.path);
-                    }
-                }
-                selectAdapter.setRefresh(items);
-            }
-        });
+
     }
 
 
@@ -67,25 +59,10 @@ public class HomeActivity extends AppCompatActivity {
             ImageLoaderConfiguration config = null;
             if(BuildConfig.DEBUG){
                 config = new ImageLoaderConfiguration.Builder(context)
-						/*.threadPriority(Thread.NORM_PRIORITY - 2)
-						.memoryCacheSize((int) (Runtime.getRuntime().maxMemory() / 4))
-						.diskCacheSize(500 * 1024 * 1024)
-						.writeDebugLogs()
-						.diskCacheFileNameGenerator(new Md5FileNameGenerator())
-						.tasksProcessingOrder(QueueProcessingType.LIFO).build();*/
-
-                        //.memoryCacheExtraOptions(200, 200)
-                        //.diskCacheExtraOptions(200, 200, null).threadPoolSize(3)
                         .threadPriority(Thread.NORM_PRIORITY - 1)
                         .tasksProcessingOrder(QueueProcessingType.LIFO)
-                        //.denyCacheImageMultipleSizesInMemory().memoryCache(new LruMemoryCache(2 * 1024 * 1024))
-						/*.memoryCacheSize(20 * 1024 * 1024)*/
                         .memoryCacheSizePercentage(13)
                         .diskCacheSize(500 * 1024 * 1024)
-                        //.imageDownloader(new BaseImageDownloader(A3App.getInstance().getApplicationContext()))
-                        //.imageDecoder(new BaseImageDecoder(true))
-                        //.defaultDisplayImageOptions(DisplayImageOptions.createSimple())
-                        //.writeDebugLogs()
                         .build();
             }else{
                 config = new ImageLoaderConfiguration.Builder(context)
@@ -97,5 +74,22 @@ public class HomeActivity extends AppCompatActivity {
             ImageLoader.getInstance().init(config);
         }
 
+    }
+
+    @Override
+    public void onAddPic() {
+        AndroidImagePicker.getInstance().pickMulti(this,AndroidImagePicker.MAX_PIC_NUM-itemList.size(), true, new AndroidImagePicker.OnImagePickCompleteListener() {
+            @Override
+            public void onImagePickComplete(List<ImageItem> items) {
+                itemList.addAll(items);
+                selectPicAdapter.setRefresh(itemList);
+                for (ImageItem bean :items) {
+                    Bitmap bitmap = ImageUtil.compressScaleFromF2B(bean.path);
+                    boolean raphael = ImageUtil.saveBitmap2file(HomeActivity.this,bitmap, "Raphael", new Date().toString());
+                    Log.e(TAG, "raphael: "+raphael);
+
+                }
+            }
+        });
     }
 }
